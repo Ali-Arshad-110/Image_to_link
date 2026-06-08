@@ -43,7 +43,7 @@ AWS S3 native lifecycle policies run in daily batches and only support expiratio
 To ensure files are deleted from S3:
 1. **Immediate API Expiration:** Our `/share/[shortId]` streaming endpoint immediately returns `404` or `410` after exactly 1 hour by checking database metadata.
 2. **S3 Native Lifecycle Policy (1-day Sweep):** Deletes S3 binaries after 1 day to ensure storage costs are kept minimal.
-3. **Active Serverless Cron (Hourly/10-min Sweep):** The endpoint `/api/cron/cleanup` can be scheduled to run every 10 minutes to delete expired items from both S3 and the database.
+3. **Active Serverless Cron (Daily Sweep):** The endpoint `/api/cron/cleanup` can be scheduled to run daily to delete expired items from both S3 and the database.
 
 ### Native S3 Lifecycle Rule JSON
 Save the following as `lifecycle-policy.json` and upload it to your S3 bucket (or configure it in **Management** tab -> **Lifecycle rules**):
@@ -85,7 +85,7 @@ Create a `vercel.json` in the root of your project:
   "crons": [
     {
       "path": "/api/cron/cleanup",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
