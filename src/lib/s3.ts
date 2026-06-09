@@ -6,6 +6,7 @@ const s3ClientConfig: any = {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
   },
+  requestChecksumCalculation: "WHEN_REQUIRED",
 };
 
 // If using Supabase Storage S3-compatible API or Cloudflare R2, we need an endpoint override
@@ -17,5 +18,4 @@ if (process.env.AWS_S3_ENDPOINT) {
 
 export const s3 = new S3Client(s3ClientConfig);
 export const bucketName = process.env.AWS_S3_BUCKET_NAME || "";
-// Force hot-reload after region update to ap-southeast-1
-
+// Force hot-reload after requestChecksumCalculation update
