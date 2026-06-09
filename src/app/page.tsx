@@ -20,7 +20,8 @@ import {
   Activity,
   Server,
   Layers,
-  Fingerprint
+  Fingerprint,
+  Image as ImageIcon
 } from "lucide-react";
 
 export default function Home() {
@@ -36,6 +37,7 @@ export default function Home() {
   const [downloadUrl, setDownloadUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedImage, setCopiedImage] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -245,6 +247,44 @@ export default function Home() {
     setCopied(true);
     addLog(`SYS: Shared URL copied to system clipboard.`);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyImageToClipboard = async () => {
+    try {
+      if (!imagePreview) return;
+
+      const img = new Image();
+      img.src = imagePreview;
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                "image/png": blob
+              })
+            ]);
+            setCopiedImage(true);
+            addLog("SYS: Raw image file copied to clipboard. Paste directly in Gemini/ChatGPT.");
+            setTimeout(() => setCopiedImage(false), 2000);
+          } catch (clipErr) {
+            console.error("Clipboard write failed:", clipErr);
+            addLog("ERR: Clipboard write failed. Please check browser permissions.");
+          }
+        }, "image/png");
+      };
+    } catch (err: any) {
+      console.error("Failed to copy image:", err);
+      addLog(`ERR: Clipboard conversion failed: ${err.message}`);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -530,32 +570,56 @@ export default function Home() {
                   </div>
 
                   {/* Shared Link Output */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-mono text-cyan-400 block uppercase tracking-wider">
-                      🎯 Binary Endpoint URL
-                    </label>
-                    <div className="flex space-x-2">
-                      <div className="relative flex-1 bg-[#05060b] border border-[#1c264c] rounded-lg overflow-hidden flex items-center px-3 h-11">
-                        <span className="text-xs text-white font-mono select-all truncate block w-full">
-                          {downloadUrl}
-                        </span>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono text-cyan-400 block uppercase tracking-wider">
+                        🎯 Binary Endpoint URL
+                      </label>
+                      <div className="flex space-x-2">
+                        <div className="relative flex-1 bg-[#05060b] border border-[#1c264c] rounded-lg overflow-hidden flex items-center px-3 h-11">
+                          <span className="text-xs text-white font-mono select-all truncate block w-full">
+                            {downloadUrl}
+                          </span>
+                        </div>
+                        <button
+                          onClick={copyToClipboard}
+                          className={`px-5 py-2.5 rounded-lg font-bold text-xs font-mono flex items-center space-x-2 transition-all duration-300 cursor-pointer ${copied
+                            ? "bg-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] border-emerald-400"
+                            : "bg-[#10172e] hover:bg-[#1a254b] text-white border border-[#213064]"
+                            }`}
+                        >
+                          {copied ? (
+                            <>
+                              <Check className="w-4 h-4 stroke-[2.5]" />
+                              <span>COPIED!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-4 h-4" />
+                              <span>COPY LINK</span>
+                            </>
+                          )}
+                        </button>
                       </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
                       <button
-                        onClick={copyToClipboard}
-                        className={`px-5 py-2.5 rounded-lg font-bold text-xs font-mono flex items-center space-x-2 transition-all duration-300 cursor-pointer ${copied
+                        onClick={copyImageToClipboard}
+                        className={`flex-1 py-3 rounded-lg font-bold text-xs font-mono flex items-center justify-center space-x-2 transition-all duration-300 cursor-pointer ${copiedImage
                           ? "bg-emerald-500 text-slate-950 shadow-[0_0_20px_rgba(16,185,129,0.4)] border-emerald-400"
-                          : "bg-[#10172e] hover:bg-[#1a254b] text-white border border-[#213064]"
+                          : "bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 hover:from-cyan-500/25 hover:to-indigo-500/25 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400/60"
                           }`}
                       >
-                        {copied ? (
+                        {copiedImage ? (
                           <>
                             <Check className="w-4 h-4 stroke-[2.5]" />
-                            <span>COPIED!</span>
+                            <span>IMAGE FILE COPIED!</span>
                           </>
                         ) : (
                           <>
-                            <Copy className="w-4 h-4" />
-                            <span>COPY ENDPOINT</span>
+                            <ImageIcon className="w-4 h-4 text-cyan-400" />
+                            <span>COPY ACTUAL IMAGE (FOR PASTE IN GEMINI/CHATGPT)</span>
                           </>
                         )}
                       </button>

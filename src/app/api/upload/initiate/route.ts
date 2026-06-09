@@ -125,11 +125,13 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const ext = fileName.includes(".") ? fileName.slice(fileName.lastIndexOf(".")) : "";
     const downloadUrl = `${appUrl}/share/${shortId}${ext}`;
+    const previewUrl = `${appUrl}/view/${shortId}`;
 
     return NextResponse.json({
       uploadUrl,
       shortId,
       downloadUrl,
+      previewUrl,
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error: any) {
