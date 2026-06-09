@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { s3, bucketName } from "@/lib/s3";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { generateShortId, isRateLimited } from "@/lib/utils";
 
@@ -89,6 +89,38 @@ export async function POST(req: NextRequest) {
         expiresAt,
       },
     });
+
+    // 6. Proactive cleanup sweep: Remove up to 5 expired records and files on-the-fly
+    try {
+      const expiredUploads = await prisma.imageUpload.findMany({
+        where: {
+          expiresAt: {
+            lt: new Date(),
+          },
+        },
+        take: 5,
+      });
+
+      for (const expired of expiredUploads) {
+        try {
+          await s3.send(new DeleteObjectCommand({
+            Bucket: bucketName,
+            Key: expired.s3Key,
+          }));
+        } catch (s3Err: any) {
+          console.error(`Quick sweep S3 delete failure for ${expired.s3Key}:`, s3Err);
+        }
+        try {
+          await prisma.imageUpload.delete({
+            where: { id: expired.id },
+          });
+        } catch (dbErr: any) {
+          console.error(`Quick sweep DB delete failure for ID ${expired.id}:`, dbErr);
+        }
+      }
+    } catch (sweepErr: any) {
+      console.error("Proactive cleanup sweep failed:", sweepErr);
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const downloadUrl = `${appUrl}/share/${shortId}`;
