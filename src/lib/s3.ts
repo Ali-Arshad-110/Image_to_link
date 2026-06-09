@@ -17,3 +17,5 @@ if (process.env.AWS_S3_ENDPOINT) {
 
 export const s3 = new S3Client(s3ClientConfig);
 export const bucketName = process.env.AWS_S3_BUCKET_NAME || "";
+// Force hot-reload after region update to ap-southeast-1
+
