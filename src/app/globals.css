@@ -22,5 +22,76 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Cyberpunk & Hologram Animations */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes grid-move {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 40px 40px;
+  }
+}
+
+@keyframes holographic-glow {
+  0%, 100% {
+    opacity: 0.3;
+    filter: drop-shadow(0 0 2px rgba(6, 182, 212, 0.4));
+  }
+  50% {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.8));
+  }
+}
+
+.animate-scan {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-scan::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, transparent, rgba(6, 182, 212, 0.8), rgba(99, 102, 241, 0.8), transparent);
+  animation: scanline 2.5s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.cyber-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+  animation: grid-move 20s linear infinite;
+}
+
+.holo-glow {
+  animation: holographic-glow 4s ease-in-out infinite;
+}
+
+.glow-border-indigo:hover {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.glow-border-cyan:hover {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+

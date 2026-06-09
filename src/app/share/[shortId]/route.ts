@@ -9,10 +9,13 @@ export async function GET(
 ) {
   const { shortId } = await params;
 
+  // Strip file extension suffix if present (e.g., "BPHE3g.png" -> "BPHE3g")
+  const cleanShortId = shortId.includes(".") ? shortId.split(".")[0] : shortId;
+
   try {
     // 1. Fetch metadata from DB
     const upload = await prisma.imageUpload.findUnique({
-      where: { shortId },
+      where: { shortId: cleanShortId },
     });
 
     // 2. Validate existence and expiration

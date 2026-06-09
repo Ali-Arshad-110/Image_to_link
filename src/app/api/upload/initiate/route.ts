@@ -123,7 +123,8 @@ export async function POST(req: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const downloadUrl = `${appUrl}/share/${shortId}`;
+    const ext = fileName.includes(".") ? fileName.slice(fileName.lastIndexOf(".")) : "";
+    const downloadUrl = `${appUrl}/share/${shortId}${ext}`;
 
     return NextResponse.json({
       uploadUrl,
